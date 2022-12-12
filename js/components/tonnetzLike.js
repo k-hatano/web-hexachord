@@ -70,12 +70,30 @@ let trichordTonnetz = {
     computed: {
         points: function (){ // Coordinates in the HTML format for polygons
             return this.coords.map( ({x,y}) => `${x},${y}` ).join(' ')
+        },
+        translation: function() {
+            if (this._props.shape[1].x > 0) { // Major
+                return "translate(16, 24)";
+            } else { // Minor
+                return "translate(-16, 24)";
+            }
+        },
+        textClass: function() {
+            let degree = (this._props.notes[0].id + 2 - (this.$root.scale * 7) + 1200) % 12;
+            let isMajor = this._props.shape[1].x > 0;
+            return "triangle " + (isMajor ? "major" : "minor") + "_" + degree;
         }
     },
     template: `
-        <polygon v-bind:class="{activeTrichord:isActive, visitedTrichord:semiActive}" 
-            class="tonnetzTrichord"
-            v-bind:points="points"/>
+        <g>
+            <polygon v-bind:class="{activeTrichord:isActive, visitedTrichord:semiActive}" 
+                class="tonnetzTrichord"
+                v-bind:points="points"/>
+            <text v-bind:cx="center.x" v-bind:cy="center.y"
+                v-bind:transform="translation"
+                v-bind:class="textClass">
+            </text>
+        </g>
         `
 };
 
@@ -89,6 +107,10 @@ let tonnetzLike = {
         },
         bounds: { // The bounds of the drawing area
             type: Object
+        },
+        scale: {
+            type: Number,
+            default: 0
         }
     },
     computed: {
@@ -299,8 +321,10 @@ let noteChicken = {
         }
     },
     template: `
-        <polygon v-bind:class="{activeNode:isActive, visitedNode:semiActive}" class="chickenNote" 
-            v-bind:points="points" v-bind:data-key="notes[0].id"/>
+        <g>
+            <polygon v-bind:class="{activeNode:isActive, visitedNode:semiActive}" class="chickenNote" 
+                v-bind:points="points" v-bind:data-key="notes[0].id"/>
+        </g>
         `
 }
 

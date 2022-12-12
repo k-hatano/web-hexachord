@@ -74,7 +74,7 @@ proto = new Vue({
                 //.and(function(){ proto.loaded(); }),
         // Azerty keyboard bindings
         ascii: JZZ.input.ASCII({
-                W:'C5', S:'C#5', X:'D5', D:'D#5', C:'E5', V:'F5',
+                Z:'C5', S:'C#5', X:'D5', D:'D#5', C:'E5', V:'F5',
                 G:'F#5', B:'G5', H:'Ab5', N:'A5', J:'Bb5', M:'B5'
                 }),
         
@@ -83,7 +83,10 @@ proto = new Vue({
         // The localisation strings
         allStrings: strings,
         // The picked locale
-        language: language || en
+        language: language || en,
+
+        // scale
+        scale: 0
     },
     computed:{
         complementNotes: function(){
@@ -179,3 +182,86 @@ proto = new Vue({
 })
 
 }) // fallback.ready
+
+function scaleChanged(target) {
+    let scale = (target.value * 7 + 120) % 12;
+
+    for (let i = 0; i < 12; i++) {
+        let degree = (i - scale + 120) % 12;
+        let majorTriangles = document.getElementsByClassName("major_" + i);
+        for (let j = 0; j < majorTriangles.length; j++) {
+            let label = "";
+            if (target.value < -100) {
+                label = "";
+            } else if (degree == 8) {
+                label = "♭SM";
+            } else if (degree == 3) {
+                label = "♭M";
+            } else if (degree == 10) {
+                label = "♭MD";
+            } else if (degree == 5) {
+                label = "SD";
+            } else if (degree == 0) {
+                label = "T";
+            } else if (degree == 7) {
+                label = "D";
+            } else if (degree == 2) {
+                label = "S/T";
+            } else if (degree == 9) {
+                label = "SM";
+            } else if (degree == 4) {
+                label = "M";
+            } else if (degree == 11) {
+                label = "S/TSM";
+            } else if (degree == 6) {
+                label = "SMSM";
+            } else if (degree == 1) {
+                label = "Np";
+            }
+            majorTriangles[j].innerHTML = label;
+            if (degree == 8 || degree == 3 || degree == 10 || degree == 5 || degree == 0 || degree == 7) {
+                majorTriangles[j].setAttribute("class", "triangle major_" + i + " bold");
+            } else {
+                majorTriangles[j].setAttribute("class", "triangle major_" + i);
+            }
+        }
+
+        let minorTriangles = document.getElementsByClassName("minor_" + i);
+        for (let j = 0; j < minorTriangles.length; j++) {
+            let label = "";
+            if (target.value < -100) {
+                label = "";
+            } else if (degree == 8) {
+                label = "♭sm";
+            } else if (degree == 3) {
+                label = "♭m";
+            } else if (degree == 10) {
+                label = "♭mv";
+            } else if (degree == 5) {
+                label = "sd";
+            } else if (degree == 0) {
+                label = "t";
+            } else if (degree == 7) {
+                label = "v";
+            } else if (degree == 2) {
+                label = "dor";
+            } else if (degree == 9) {
+                label = "sm";
+            } else if (degree == 4) {
+                label = "m";
+            } else if (degree == 11) {
+                label = "♭smm";
+            } else if (degree == 6) {
+                label = "♭mm";
+            } else if (degree == 1) {
+                label = "♭mvm";
+            }
+            minorTriangles[j].innerHTML = label;
+            if (degree == 0 || degree == 5 || degree == 7 || degree == 2 || degree == 9 || degree == 4) {
+                minorTriangles[j].setAttribute("class", "triangle minor_" + i + " bold");
+            } else {
+                minorTriangles[j].setAttribute("class", "triangle minor_" + i);
+            }
+        }
+    }
+}

@@ -69,7 +69,24 @@ const strings = {
     export: 'Export', // Needs translation
     connected: 'इस जोड़ में सभी स्वर नहीं है.',
     notes: ['ध', 'निb', 'नि', 'सा', 'रेb', 'रे', 'गb', 'ग', 'म', 'पb', 'प', 'धb']
-  }
+  },
+  ja: {
+    title: 'The Tonnetz',
+    subtitle: '1つのキーを、様々な表現方法で',
+    dual: '双対',
+    reset: 'リセット',
+    load: 'MIDIファイル読み込み',
+    start: '⏺ 録音',
+    stopRecord: '⏺⏹ 停止',
+    play: '▶️ 再生',
+    stopPlay: '⏹ 停止',
+    pause: '⏸ 一時停止',
+    rotate: 'ネガティブ',
+    translate: '移調',
+    export: '書き出し',
+    connected: 'このTonnetzはすべての音に接続されておらず、含まれていない音が存在します。',
+    notes: ['A', 'A♯', 'B', 'C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯']
+  },
 }
 
 const search = location.search.match(/hl=(\w*)/);

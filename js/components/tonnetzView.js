@@ -1,5 +1,21 @@
 //Component aggregating a tonnetz with a selector
 
+let tonnetzscales = [
+    {id: -108, name: ''},
+    {id: 0, name: 'C'},
+    {id: 7, name: 'C♯'},
+    {id: 2, name: 'D'},
+    {id: 9, name: 'D♯'},
+    {id: 4, name: 'E'},
+    {id: 11, name: 'F'},
+    {id: 6, name: 'F♯'},
+    {id: 1, name: 'G'},
+    {id: 8, name: 'G♯'},
+    {id: 3, name: 'A'},
+    {id: 10, name: 'A♯'},
+    {id: 5, name: 'B'},
+];
+
 let tonnetze3 = [
     [1,1,10],
     [1,2,9],
@@ -23,6 +39,7 @@ let tonnetzSelector = {
     },
     data:function(){return{
         tonnetze:tonnetze3,
+        scales:tonnetzscales
     }},
     computed:{
         strings: function(){return this.$root.strings}
@@ -30,13 +47,19 @@ let tonnetzSelector = {
     template:`
     <div class="button-row">
         <div class="options">
+            <select
+                onChange="scaleChanged(this)">
+                <option v-for="scale in scales" v-bind:value="scale.id">{{ scale.name }}</option>
+            </select>
+        </div>
+        <div class="options">
             <button v-for="tonnetz in tonnetze" 
-            v-on:click="$emit('input',{intervals:tonnetz,type:value.type})" 
+            v-on:click="$emit('input',{intervals:tonnetz,scale:value.scale,type:value.type})" 
             v-bind:class="{active:tonnetz==value.intervals}">
                 {{ tonnetz.join(', ') }}
             </button>
         </div>
-        <button v-on:click="$emit('input',{intervals:value.intervals,type:(value.type=='chicken'?'tonnetz':'chicken')})"
+        <button v-on:click="$emit('input',{intervals:value.intervals,scale:value.scale,type:(value.type=='chicken'?'tonnetz':'chicken')})"
         v-bind:class="{active: value.type=='chicken'}">
             {{ strings.dual }}
         </button>
@@ -65,6 +88,10 @@ let tonnetzView = {
         trace:{
             type:Boolean,
             default:false
+        },
+        initScale:{
+            type:Number,
+            default:0
         }
     },
     data: function(){return{
@@ -74,11 +101,13 @@ let tonnetzView = {
             // The selected interval set
             intervals:tonnetze3.find(value => arrayEquals(this.initTonnetz,value)), //Find so that the arrays compare equal
             // The type of representation for the main window ('tonnetz' or 'chicken')
-            type: this.initType
+            type: this.initType,
+
+            scale: this.initScale
         },
         // Should drag and zoom be locked ?
         lock: true,
-        strings:this.$root.strings,
+        strings:this.$root.strings
     }},
     computed:{
         intervals: function(){
@@ -86,6 +115,9 @@ let tonnetzView = {
         },
         type: function(){
             return this.graph.type
+        },
+        scale: function(){
+            return this.graph.scale
         },
         isConnected: function(){
             return this.intervals.reduce(gcd,12)===1;
@@ -95,8 +127,8 @@ let tonnetzView = {
     <div class="tonnetzView">
     <drag-zoom-svg v-bind:height="600" v-bind:width="1000" :lock="lock">
         <template v-slot="slotProps">
-            <tonnetz-plan v-if="type=='tonnetz'" v-bind:notes="notes" v-bind:intervals="intervals" :bounds="slotProps.bounds" :trace="trace"></tonnetz-plan>
-            <chicken-wire v-else v-bind:notes="notes" :bounds="slotProps.bounds" v-bind:intervals="intervals" :trace="trace"></chicken-wire>
+            <tonnetz-plan v-if="type=='tonnetz'" v-bind:notes="notes" v-bind:intervals="intervals" v-bind:scale="scale" :bounds="slotProps.bounds" :trace="trace"></tonnetz-plan>
+            <chicken-wire v-else v-bind:notes="notes" :bounds="slotProps.bounds" v-bind:intervals="intervals" v-bind:scale="scale" :trace="trace"></chicken-wire>
         </template>
     </drag-zoom-svg>
 

@@ -35,6 +35,10 @@ let clockOctave = {
         intervals: {
             type: Number,
             default: 1
+        },
+        scale: {
+            type: Number,
+            default: 0
         }
     },
     computed: {

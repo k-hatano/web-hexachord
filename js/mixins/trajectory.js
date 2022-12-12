@@ -5,6 +5,10 @@ let traceHandler = {
         trace: {
             type: Boolean,
             default: false
+        }, 
+        scale: {
+            type: Number,
+            default: 0
         }
     },
     data: function(){return {
@@ -36,6 +40,9 @@ let traceHandler = {
             this.resetTrajectory();
         },
         intervals : function(){// If intervals changes, the current trajectory is no longer valid
+            this.resetTrajectory();
+        },
+        scale : function(){// If scale changes, the current trajectory is no longer valid
             this.resetTrajectory();
         }
     },
