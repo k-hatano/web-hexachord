@@ -196,7 +196,7 @@ function scaleChanged(target) {
 
     for (let i = 0; i < 12; i++) {
         let degree = (i - scale + 120) % 12;
-        let majorTriangles = document.getElementsByClassName("major_" + i);
+        let majorTriangles = document.getElementsByName("major_" + i);
         for (let j = 0; j < majorTriangles.length; j++) {
             let label = "";
             if (target.value < -100) {
@@ -219,22 +219,18 @@ function scaleChanged(target) {
                 label = "SM";
             } else if (degree == 4) {
                 label = "M";
-            } else if (degree == 11) {
-                label = "S/TSM";
-            } else if (degree == 6) {
-                label = "SMSM";
             } else if (degree == 1) {
                 label = "Np";
             }
             majorTriangles[j].innerHTML = label;
-            if (degree == 8 || degree == 3 || degree == 10 || degree == 5 || degree == 0 || degree == 7) {
+            if (degree == 0) {
                 majorTriangles[j].setAttribute("class", "triangle major_" + i + " bold");
             } else {
                 majorTriangles[j].setAttribute("class", "triangle major_" + i);
             }
         }
 
-        let minorTriangles = document.getElementsByClassName("minor_" + i);
+        let minorTriangles = document.getElementsByName("minor_" + i);
         for (let j = 0; j < minorTriangles.length; j++) {
             let label = "";
             if (target.value < -100) {
@@ -257,15 +253,9 @@ function scaleChanged(target) {
                 label = "sm";
             } else if (degree == 4) {
                 label = "m";
-            } else if (degree == 11) {
-                label = "♭smm";
-            } else if (degree == 6) {
-                label = "♭mm";
-            } else if (degree == 1) {
-                label = "♭mvm";
             }
             minorTriangles[j].innerHTML = label;
-            if (degree == 0 || degree == 5 || degree == 7 || degree == 2 || degree == 9 || degree == 4) {
+            if (degree == 0) {
                 minorTriangles[j].setAttribute("class", "triangle minor_" + i + " bold");
             } else {
                 minorTriangles[j].setAttribute("class", "triangle minor_" + i);

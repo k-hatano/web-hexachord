@@ -84,20 +84,25 @@ let trichordTonnetz = {
                 return "translate(-16, 24)";
             }
         },
-        textClass: function() {
-            let degree = (this._props.notes[0].id + 2 - (this.$root.scale * 7) + 1200) % 12;
+        textName: function() {
+            let degree = (this._props.notes[0].id + 2 + 1200) % 12;
             let isMajor = this._props.shape[1].x > 0;
-            return "triangle " + (isMajor ? "major" : "minor") + "_" + degree;
+            return (isMajor ? "major" : "minor") + "_" + degree;
+        },
+        textBold: function() {
+            let degree = (this._props.notes[0].id + 2) % 12;
+            return degree == 0;
         }
     },
     template: `
-        <g>
+        <g v-bind:class="{active:isActive}">
             <polygon v-bind:class="{activeTrichord:isActive, visitedTrichord:semiActive}" 
                 class="tonnetzTrichord"
                 v-bind:points="points"/>
             <text v-bind:cx="center.x" v-bind:cy="center.y"
                 v-bind:transform="translation"
-                v-bind:class="textClass">
+                class="triangle"
+                v-bind:name="textName">
             </text>
         </g>
         `

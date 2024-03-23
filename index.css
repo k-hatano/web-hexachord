@@ -176,10 +176,14 @@ text { fill: #aaa; font-size: 14px; text-anchor: middle; dominant-baseline: cent
 
 .triangle {
     font-size: xx-small;
-    fill: #ddd;
+    fill: #dadada;
 }
 
 .triangle.bold {
-    fill: #bbb;
+    fill: #aaa;
+}
+
+g.active .triangle.bold {
+    fill: unset;
 }
 
