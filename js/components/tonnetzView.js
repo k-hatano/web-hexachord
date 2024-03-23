@@ -35,6 +35,10 @@ let tonnetzSelector = {
     props:{
         value:{
             type:Object
+        },
+        tonnetze:{ // Range of selectable Tonnetze
+            type: Array,
+            required: true
         }
     },
     data:function(){return{
@@ -61,14 +65,14 @@ let tonnetzSelector = {
         </div>
         <button v-on:click="$emit('input',{intervals:value.intervals,scale:value.scale,type:(value.type=='chicken'?'tonnetz':'chicken')})"
         v-bind:class="{active: value.type=='chicken'}">
-            {{ strings.dual }}
+            {{ strings.get('dual') }}
         </button>
     </div>
     `
 }
 
 let tonnetzView = {
-    components: {tonnetzPlan,chickenWire,dragZoomSvg,tonnetzSelector},
+    components: {tonnetzPlan,chickenWire,dragZoomSvg,tonnetzSelector,infoPanel},
     props:{
         // The initial value for the Tonnetz
         initTonnetz:{
@@ -94,12 +98,16 @@ let tonnetzView = {
             default:0
         }
     },
+    static: {
+        tonnetze3: [
+            [1,1,10],[1,2,9],[1,3,8],[1,4,7],[1,5,6],[2,2,8],
+            [2,3,7],[2,4,6],[2,5,5],[3,4,5],[3,3,6],[4,4,4]
+        ]
+    },
     data: function(){return{
-        // The list of all 3-interval Tonnetze
-        tonnetze: tonnetze3,
         graph: {
             // The selected interval set
-            intervals:tonnetze3.find(value => arrayEquals(this.initTonnetz,value)), //Find so that the arrays compare equal
+            intervals:this.tonnetze3.find(value => arrayEquals(this.initTonnetz,value)), //Find so that the arrays compare equal
             // The type of representation for the main window ('tonnetz' or 'chicken')
             type: this.initType,
 
@@ -125,6 +133,7 @@ let tonnetzView = {
     },
     template:`
     <div class="tonnetzView">
+    <info-panel :infoType="type"></info-panel>
     <drag-zoom-svg v-bind:height="600" v-bind:width="1000" :lock="lock">
         <template v-slot="slotProps">
             <tonnetz-plan v-if="type=='tonnetz'" v-bind:notes="notes" v-bind:intervals="intervals" v-bind:scale="scale" :bounds="slotProps.bounds" :trace="trace"></tonnetz-plan>
@@ -132,8 +141,8 @@ let tonnetzView = {
         </template>
     </drag-zoom-svg>
 
-    <tonnetz-selector v-model="graph"></tonnetz-selector>
-    <p class="warning" :style="isConnected ? {visibility:'hidden'} : {}">{{ strings.connected }}</p>
+    <tonnetz-selector v-model="graph" :tonnetze="tonnetze3" ></tonnetz-selector>
+    <p class="warning" :style="isConnected ? {visibility:'hidden'} : {}">{{ strings.get('connected') }}</p>
     </div>
     `
 }

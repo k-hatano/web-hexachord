@@ -47,15 +47,24 @@ var record = {
 // Wait for libraries to be loaded
 fallback.ready(function(){
 
-// The App's main object, handling global concerns
+// Global mixin to add a static field to hold static data to any component
+Vue.mixin({
+    beforeCreate() {
+        const static = this.$options.static
+        if (typeof static === 'object') {
+            Object.assign(this, static)
+        }
+    }
+})
+
+    // The App's main object, handling global concerns
 proto = new Vue({
     el: '#proto',
-    components: {clockOctave,songLoader,pianoKeyboard,playRecorder,tonnetzView,languageSelector,intervalTable},
+    components: {
+        clockOctave,songLoader,pianoKeyboard,playRecorder,tonnetzView,
+        languageSelector,intervalTable,creditScreen,asciiBindings,chordDisplay
+    },
     data: {
-        // The list of all 3-interval Tonnetze
-        tonnetze: tonnetze3,
-        // The selected interval set
-        intervals: tonnetze3[9],
         // The type of representation for the main window ('tonnetz' or 'chicken')
         type: 'tonnetz',
         // The list of all notes: their name and their status
@@ -77,11 +86,10 @@ proto = new Vue({
                 Z:'C5', S:'C#5', X:'D5', D:'D#5', C:'E5', V:'F5',
                 G:'F#5', B:'G5', H:'Ab5', N:'A5', J:'Bb5', M:'B5'
                 }),
-        
         // Should trajectory drawing be active?
         trace: false,
         // The localisation strings
-        allStrings: strings,
+        strings: strings,
         // The picked locale
         language: language || en,
 
@@ -92,9 +100,6 @@ proto = new Vue({
         complementNotes: function(){
             return this.notes.map(note => ({id:note.id, count:note.count?0:1}));
         },
-        strings: function(){
-            return strings[this.language]
-        }
     },
     created: function(){
         //Delay connection of MIDI devices to let JZZ finish its initialisation
@@ -126,14 +131,16 @@ proto = new Vue({
         
         //Handler for Midi events coming from JZZ
         midiHandler: function (midiEvent){
-            noteIndex = (midiEvent.getNote()+3) %12
-            if(midiEvent.isNoteOn()){
-                this.notes[noteIndex].count++;
-            }else if(midiEvent.isNoteOff()){
-                if(this.notes[noteIndex].count > 0){
-                    this.notes[noteIndex].count--;
-                }else{
-                    console.log('Warning: ignored unbalanced noteOff event', midiEvent);
+            if(midiEvent.getChannel() !== 9){ // Ignore drums events
+                noteIndex = (midiEvent.getNote()+3) %12
+                if(midiEvent.isNoteOn()){
+                    this.notes[noteIndex].count++;
+                }else if(midiEvent.isNoteOff()){
+                    if(this.notes[noteIndex].count > 0){
+                        this.notes[noteIndex].count--;
+                    }else{
+                        console.log('Warning: ignored unbalanced noteOff event', midiEvent);
+                    }
                 }
             }
         },
@@ -146,10 +153,12 @@ proto = new Vue({
             this.trace = !this.trace;
         },
         // Handlers for playback events fired from the app
-        noteOn: function(pitches){
+        noteOn: function(pitches,origin){
             //var notes = this.node2Notes(nodes);
             for (var pitch of pitches){
-                midiBus.midiThru.noteOn(0,pitch,100);
+                let event = JZZ.MIDI.noteOn(0,pitch,100);
+                event.origin = origin
+                midiBus.midiThru.send(event);
             }
         },
         noteOff: function(pitches){
@@ -175,7 +184,6 @@ proto = new Vue({
         midiBus.$on('note-off',this.noteOff);
 
         //Connect the Midi
-        this.ascii.connect(midiBus.midiThru);
         midiBus.midiThru.connect(this.synth);
         midiBus.midiThru.connect(this.midiHandler);   
     }
@@ -265,3 +273,4 @@ function scaleChanged(target) {
         }
     }
 }
+

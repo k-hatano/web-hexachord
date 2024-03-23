@@ -5,16 +5,22 @@ let noteTonnetz = {
     computed:{
         strings: function (){
             return this.$root.strings
+        },
+        textScale: function (){
+            let maxLength=Math.max(...this.strings.get('notes').map(name => name.length))
+            let scale = Math.min(1,2.5/maxLength)
+            return `scale(${scale})`
         }
     },
     template: `
         <g class="tonnetzNote">
             <circle v-bind:class="{activeNode:isActive, visitedNode:semiActive}"
                 v-bind:data-key="notes[0].id">
-            </circle> 
-            <text>
-                {{ strings.notes[notes[0].id] }}
+            </circle>
+            <text :transform="textScale">
+                {{ strings.get(['notes',notes[0].id]) }}
             </text>
+            </g>
         </g>
         `
 };
@@ -155,14 +161,17 @@ let tonnetzLike = {
     methods: {
         // Converts an array of nodes to an array of the corresponding notes
         node2Notes: function (nodes){
-            return nodes.map(node => this.notes[mod(-node.x*this.intervals[0]+node.y*this.intervals[2],12)])
+            return mapOrApply(node => 
+                this.notes[mod(-node.x*this.intervals[0]+node.y*this.intervals[2],12)]
+                )(nodes);
         },
         // Converts an array of nodes to an array of the corresponding Midi pitches
-        nodesToPitches: function(nodes){
-            return nodes.map(nodeIt => {
-                let x = 81-nodeIt.x*this.intervals[0]+nodeIt.y*(this.intervals[2]-12)
-                return Math.max(x,mod(x,12))
-            });
+        nodesToPitches: function (nodes){
+            return mapOrApply(node => {
+                let x = 81 - node.x * this.intervals[0]
+                           + node.y * (this.intervals[2]-12);
+                return Math.max(x,mod(x,12)) // Bound to valid MIDI values
+            })(nodes)
         },
         // Returns the svg transform string corresponding to a node's position
         position: function(node){
@@ -181,10 +190,11 @@ let tonnetzLike = {
             return n.map(function textify(node){return `${node.x},${node.y}`}).join(' ')
         }
     },
-    subtemplateNote:`
+    subtemplateTrichord:`
             <clickToPlayWrapper :transform="position(n.nodes[0])"
             v-for="n in trichordStateList" v-bind:key="genKey(n.nodes)"
-            :pitches="nodesToPitches(n.nodes)">
+            :pitches="nodesToPitches(n.nodes)"
+            :id="n.nodes">
                 <trichord 
                 v-bind:notes="memoNode2Notes(n.nodes)"
                 v-bind:nodes="n.nodes"
@@ -195,16 +205,18 @@ let tonnetzLike = {
     subtemplateDichord:`
             <clickToPlayWrapper :transform="position(n.nodes[0])"
             v-for="n in dichordStateList" v-bind:key="genKey(n.nodes)"
-            :pitches="nodesToPitches(n.nodes)">
+            :pitches="nodesToPitches(n.nodes)"
+            :id="n.nodes">
                 <dichord 
                 v-bind:shape="memoShape(n.nodes)"
                 v-bind:notes="memoNode2Notes(n.nodes)"
                 :forceState="n.status"/>
     </clickToPlayWrapper>`,
-    subtemplateTrichord:`
+    subtemplateNote:`
             <clickToPlayWrapper :transform="position(n.node)"
             v-for="n in nodeStateList" v-bind:key="genKey([n.node])"
-            :pitches="nodesToPitches([n.node])">
+            :pitches="nodesToPitches([n.node])"
+            :id="[n.node]">
                 <note v-bind:notes="memoNode2Notes([n.node])"
                 v-bind:nodes="[n.node]"
                 :forceState="n.status"/>
@@ -223,9 +235,9 @@ let tonnetzPlan = {
     mixins: [traceHandler],
     template: `
         <g>
-            ${tonnetzLike.subtemplateNote}
-            ${tonnetzLike.subtemplateDichord}
-            ${tonnetzLike.subtemplateTrichord}    
+            ${tonnetzLike.subtemplateTrichord}  
+            ${tonnetzLike.subtemplateDichord} 
+            ${tonnetzLike.subtemplateNote} 
         </g>
     `
 }
@@ -240,20 +252,17 @@ let trichordChicken = {
         strings: function (){
             return this.$root.strings
         },
-        text: function(){
-            //Is this a major or minor chord ?
+        isMinorish: function(){
+            //Is this a majorish or minorish chord ?
             //I.E. is the matching triangle in the Tonnetz right- or left-pointed
-            var major = (this.shape[0].y == this.shape[1].y);
-            if (major){
-                return this.strings.notes[this.notes[2].id]; // notes[2] is the root
-            }else{
-                var display = this.strings.notes[this.notes[2].id];
-                return display[0].toLowerCase() + display.substring(1); //Uncapitalize the root, leave the alteration
-            }
+            return this.shape[0].y !== this.shape[1].y;
+        },
+        text: function(){
+            return this.strings.get(['notes',this.notes[2].id]);
         }
     },
     template: `
-        <g v-bind:id="id" class=chickenTrichord>
+        <g v-bind:id="id" class=chickenTrichord :class="{minorish:isMinorish}">
             <circle v-bind:class="{activeTrichord:isActive, visitedTrichord:semiActive}"
                 v-bind:cx="center.x" v-bind:cy="center.y">
             </circle> 
@@ -339,10 +348,10 @@ let chickenWire = {
     extends: tonnetzLike,
     mixins: [traceHandler],
     template: `
-        <g>
-        ${tonnetzLike.subtemplateTrichord}
-        ${tonnetzLike.subtemplateDichord}   
+        <g>  
         ${tonnetzLike.subtemplateNote} 
+        ${tonnetzLike.subtemplateDichord} 
+        ${tonnetzLike.subtemplateTrichord}
         </g>
     `
 }
